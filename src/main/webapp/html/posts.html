@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Posts</title>
+</head>
+<body>
+
+<h1>All Blog Posts</h1>
+
+<nav>
+    <a href="index.html">Home</a> |
+    <a href="create-post.html">Create Post</a> |
+    <a href="profile.html">My Profile</a>
+</nav>
+
+<div id="posts-list">Loading posts...</div>
+<p id="message"></p>
+
+<script>
+    const contextPath = window.location.pathname.substring(
+        0,
+        window.location.pathname.indexOf("/", 1)
+    );
+
+    const basePath = contextPath || "";
+
+    async function loadPosts() {
+        const container = document.getElementById("posts-list");
+
+        try {
+            const response = await fetch(basePath + "/posts", {
+                credentials: "same-origin"
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to load posts.");
+            }
+
+            const posts = await response.json();
+            container.innerHTML = "";
+
+            if (!Array.isArray(posts) || posts.length === 0) {
+                container.textContent = "No posts found.";
+                return;
+            }
+
+            posts.forEach(post => {
+                const article = document.createElement("article");
+                const title = document.createElement("h2");
+                const link = document.createElement("a");
+                const author = document.createElement("p");
+                const date = document.createElement("p");
+                const details = document.createElement("a");
+
+                title.textContent = post.title || "Untitled";
+                author.textContent = "Author: " + (post.authorUsername || "Unknown");
+                date.textContent = "Created: " + (post.createdAt || "Unknown");
+
+                details.href = "post.html?id=" + encodeURIComponent(post.id);
+                details.textContent = "Read More";
+
+                article.appendChild(title);
+                article.appendChild(author);
+                article.appendChild(date);
+                article.appendChild(details);
+
+                container.appendChild(article);
+                container.appendChild(document.createElement("hr"));
+            });
+        } catch (error) {
+            container.textContent = "Failed to load posts.";
+        }
+    }
+
+    loadPosts();
+</script>
+
+</body>
+</html>

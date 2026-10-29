@@ -1,6 +1,6 @@
 package ir.maktabsharif.blog_management_system.servlet;
 
-
+import com.google.gson.Gson;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -8,16 +8,18 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.util.Map;
 
-@WebServlet("/api/logout")
+@WebServlet("/logout")
 public class LogoutServlet extends HttpServlet {
+
+    private final Gson gson = new Gson();
 
     @Override
     protected void doPost(HttpServletRequest request,
                           HttpServletResponse response) throws IOException {
 
-        response.setContentType("text/plain");
+        response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
         HttpSession session = request.getSession(false);
@@ -27,9 +29,8 @@ public class LogoutServlet extends HttpServlet {
         }
 
         response.setStatus(HttpServletResponse.SC_OK);
-
-        PrintWriter out = response.getWriter();
-        out.println("Logout successful");
+        response.getWriter().write(
+                gson.toJson(Map.of("message", "Logout successful"))
+        );
     }
 }
-

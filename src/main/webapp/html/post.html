@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post Details</title>
+</head>
+<body>
+
+<h1>Post Details</h1>
+
+<p><a href="posts.html">Back to All Posts</a></p>
+
+<div id="post-detail">Loading post...</div>
+<p id="message"></p>
+
+<script>
+    const contextPath = window.location.pathname.substring(
+        0,
+        window.location.pathname.indexOf("/", 1)
+    );
+
+    const basePath = contextPath || "";
+    const postId = new URLSearchParams(window.location.search).get("id");
+
+    async function loadPost() {
+        const container = document.getElementById("post-detail");
+
+        if (!postId) {
+            container.textContent = "Post ID is missing.";
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                basePath + "/post?id=" + encodeURIComponent(postId),
+                { credentials: "same-origin" }
+            );
+
+            if (!response.ok) {
+                throw new Error("Post not found.");
+            }
+
+            const post = await response.json();
+            container.innerHTML = "";
+
+            const title = document.createElement("h2");
+            const author = document.createElement("p");
+            const date = document.createElement("p");
+            const content = document.createElement("p");
+            const editLink = document.createElement("a");
+            const deleteButton = document.createElement("button");
+
+            title.textContent = post.title || "Untitled";
+            author.textContent = "Author: " + (post.authorUsername || "Unknown");
+            date.textContent = "Created: " + (post.createdAt || "Unknown");
+            content.textContent = post.content || "";
+
+            editLink.href = "edit-post.html?id=" + encodeURIComponent(post.id);
+            editLink.textContent = "Edit Post";
+
+            deleteButton.type = "button";
+            deleteButton.textContent = "Delete Post";
+
+            deleteButton.addEventListener("click", deletePost);
+
+            container.append(title, author, date, content);
+            container.appendChild(document.createElement("br"));
+            container.appendChild(editLink);
+            container.appendChild(document.createElement("br"));
+            container.appendChild(deleteButton);
+        } catch (error) {
+            container.textContent = "Failed to load post.";
+        }
+    }
+
+    async function deletePost() {
+        if (!confirm("Are you sure you want to delete this post?")) {
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                basePath + "/posts/delete?id=" + encodeURIComponent(postId),
+                {
+                    method: "DELETE",
+                    credentials: "same-origin"
+                }
+            );
+
+            if (response.ok) {
+                window.location.href = "posts.html";
+            } else {
+                document.getElementById("message").textContent =
+                    "Could not delete post.";
+            }
+        } catch (error) {
+            document.getElementById("message").textContent =
+                "Could not connect to the server.";
+        }
+    }
+
+    loadPost();
+</script>
+
+</body>
+</html>

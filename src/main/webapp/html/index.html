@@ -1,0 +1,100 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Management System</title>
+</head>
+<body>
+
+<h1>Blog Management System</h1>
+
+<nav>
+    <a href="index.html">Home</a> |
+    <a href="posts.html">All Posts</a> |
+    <a href="login.html">Login</a> |
+    <a href="register.html">Register</a> |
+    <a href="profile.html">My Profile</a>
+    <button id="logout-button" type="button">Logout</button>
+</nav>
+
+<h2>Latest Posts</h2>
+<div id="latest-posts">Loading posts...</div>
+
+<p id="message"></p>
+
+<script>
+    const contextPath = window.location.pathname.substring(
+        0,
+        window.location.pathname.indexOf("/", 1)
+    );
+
+    const basePath = contextPath || "";
+
+    async function loadLatestPosts() {
+        const container = document.getElementById("latest-posts");
+
+        try {
+            const response = await fetch(basePath + "/posts", {
+                credentials: "same-origin"
+            });
+
+            if (!response.ok) {
+                throw new Error("Could not load posts.");
+            }
+
+            const posts = await response.json();
+            container.innerHTML = "";
+
+            if (!Array.isArray(posts) || posts.length === 0) {
+                container.textContent = "No posts available.";
+                return;
+            }
+
+            posts.slice(0, 5).forEach(post => {
+                const article = document.createElement("article");
+                const title = document.createElement("h3");
+                const link = document.createElement("a");
+                const author = document.createElement("p");
+
+                link.href = "post.html?id=" + encodeURIComponent(post.id);
+                link.textContent = post.title || "Untitled";
+                title.appendChild(link);
+
+                author.textContent =
+                    "Author: " + (post.authorUsername || "Unknown");
+
+                article.appendChild(title);
+                article.appendChild(author);
+                container.appendChild(article);
+            });
+        } catch (error) {
+            container.textContent = "Failed to load posts.";
+        }
+    }
+
+    document.getElementById("logout-button").addEventListener("click", async () => {
+        try {
+            const response = await fetch(basePath + "/logout", {
+                method: "POST",
+                credentials: "same-origin"
+            });
+
+            if (response.ok) {
+                window.location.href = "login.html";
+            } else {
+                document.getElementById("message").textContent =
+                    "Logout failed.";
+            }
+        } catch (error) {
+            document.getElementById("message").textContent =
+                "Could not connect to the server.";
+        }
+    });
+
+    loadLatestPosts();
+</script>
+
+</body>
+</html>

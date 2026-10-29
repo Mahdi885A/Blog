@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+</head>
+<body>
+
+<h1>Create an Account</h1>
+
+<form id="register-form">
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" required>
+    <br><br>
+
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" required>
+    <br><br>
+
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" required>
+    <br><br>
+
+    <button type="submit">Register</button>
+</form>
+
+<p id="message"></p>
+
+<p><a href="login.html">Already have an account? Login</a></p>
+<p><a href="index.html">Home</a></p>
+
+<script>
+    const contextPath = window.location.pathname.substring(
+        0,
+        window.location.pathname.indexOf("/", 1)
+    );
+
+    const basePath = contextPath || "";
+
+    document.getElementById("register-form").addEventListener("submit", async event => {
+        event.preventDefault();
+
+        const message = document.getElementById("message");
+
+        const data = {
+            username: document.getElementById("username").value.trim(),
+            email: document.getElementById("email").value.trim(),
+            password: document.getElementById("password").value
+        };
+
+        try {
+            const response = await fetch(basePath + "/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                credentials: "same-origin",
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json().catch(() => ({}));
+
+            if (response.ok) {
+                message.textContent = result.message || "Registration successful.";
+                window.location.href = "login.html";
+            } else {
+                message.textContent = result.message || "Registration failed.";
+            }
+        } catch (error) {
+            message.textContent = "Could not connect to the server.";
+        }
+    });
+</script>
+
+</body>
+</html>

@@ -1,6 +1,8 @@
 package ir.maktabsharif.blog_management_system.servlet;
 
-
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonPrimitive;
 import ir.maktabsharif.blog_management_system.dto.PostResponseDTO;
 import ir.maktabsharif.blog_management_system.service.PostService;
 import jakarta.servlet.annotation.WebServlet;
@@ -9,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @WebServlet("/api/posts")
@@ -16,29 +19,31 @@ public class PostListServlet extends HttpServlet {
 
     private final PostService postService = new PostService();
 
+    private final Gson gson = new GsonBuilder()
+            .registerTypeAdapter(LocalDateTime.class,
+                    (com.google.gson.JsonSerializer<LocalDateTime>)
+                            (src, type, context) ->
+                                    new JsonPrimitive(src.toString()))
+            .create();
+
     @Override
     protected void doGet(HttpServletRequest request,
                          HttpServletResponse response) throws IOException {
 
-        response.setContentType("text/plain");
+        response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
         try {
             List<PostResponseDTO> posts = postService.findAll();
 
             response.setStatus(HttpServletResponse.SC_OK);
-
-            for (PostResponseDTO post : posts) {
-                response.getWriter().println(
-                        "ID: " + post.getId()
-                                + ", Title: " + post.getTitle()
-                                + ", Author: " + post.getAuthorUsername()
-                );
-            }
+            response.getWriter().write(gson.toJson(posts));
 
         } catch (Exception e) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().println("Could not retrieve posts");
+            response.getWriter().write(
+                    "{\"error\":\"Could not retrieve posts\"}"
+            );
         }
     }
 }

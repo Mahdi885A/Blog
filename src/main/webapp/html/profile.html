@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile</title>
+</head>
+<body>
+
+<h1>My Profile</h1>
+
+<p><a href="index.html">Home</a></p>
+
+<div id="profile-data">Loading profile...</div>
+<p id="message"></p>
+
+<script>
+    const contextPath = window.location.pathname.substring(
+        0,
+        window.location.pathname.indexOf("/", 1)
+    );
+
+    const basePath = contextPath || "";
+
+    async function loadProfile() {
+        const container = document.getElementById("profile-data");
+
+        try {
+            const response = await fetch(basePath + "/profile", {
+                credentials: "same-origin"
+            });
+
+            if (response.status === 401 || response.status === 403) {
+                window.location.href = "login.html";
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error("Failed to load profile.");
+            }
+
+            const user = await response.json();
+            container.innerHTML = "";
+
+            const username = document.createElement("p");
+            const email = document.createElement("p");
+
+            username.textContent = "Username: " + (user.username || "Unknown");
+            email.textContent = "Email: " + (user.email || "Unknown");
+
+            container.append(username, email);
+        } catch (error) {
+            container.textContent = "Failed to load profile.";
+        }
+    }
+
+    loadProfile();
+</script>
+
+</body>
+</html>
